@@ -16,3 +16,16 @@ def get_stock_data(stock_symbols, start_date, end_date):
         stock_data = yf.download(symbol, start=start_date, end=end_date)
         data[symbol] = stock_data[['Open']]
     return data
+
+# Prepare the data for the LSTM model
+def prepare_data(data, time_steps):
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data_scaled = scaler.fit_transform(data)
+
+    X, y = [], []
+    for i in range(time_steps, len(data_scaled)):
+        X.append(data_scaled[i - time_steps:i, 0])
+        y.append(data_scaled[i, 0])
+
+    X, y = np.array(X), np.array(y)
+    return X, y, scaler
