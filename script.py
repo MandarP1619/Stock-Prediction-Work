@@ -74,3 +74,48 @@ def visualize_predictions(actual, predicted, stock_symbol):
 
     plt.tight_layout()
     plt.show()
+
+    # Main function
+def main():
+    stock_symbols = ['AMZN', 'GOOGL', 'NFLX', 'META', 'AAPL']
+    start_date = '2010-01-01'
+    end_date = '2023-01-01'
+    time_steps = 60
+
+    all_results = []
+
+    # Step 1: Get stock data
+    stock_data = get_stock_data(stock_symbols, start_date, end_date)
+
+    for symbol, data in stock_data.items():
+        print(f"Processing {symbol}...")
+        # Step 2: Prepare data
+        data_values = data['Open'].values.reshape(-1, 1)
+        X, y, scaler = prepare_data(data_values, time_steps)
+        X = X.reshape(X.shape[0], X.shape[1], 1)
+
+        # Step 3: Split into train and test sets
+        train_size = int(0.8 * len(X))
+        X_train, X_test = X[:train_size], X[train_size:]
+        y_train, y_test = y[:train_size], y[train_size:]
+
+        # Step 4: Build and train model
+        model = build_and_train_model(X_train, y_train)
+
+        # Step 5: Predict and evaluate
+        predictions, actual, mse = predict_and_evaluate(model, X_test, y_test, scaler)
+        print(f"{symbol} - Mean Squared Error: {mse:.2f}")
+
+        # Step 6: Visualize results
+        visualize_predictions(actual, predictions, symbol)
+
+        # Collect results
+        all_results.append({'Stock': symbol, 'MSE': mse})
+
+    # Print accuracy results
+    results_df = pd.DataFrame(all_results)
+    print("\nPrediction Accuracy:")
+    print(results_df)
+
+if __name__ == "__main__":
+    main()
